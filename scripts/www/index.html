@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1E3A8A">
+<title>学习委员考勤端 · 水电尹路人工作台</title>
+<style>
+:root{
+  --c-primary:#1E3A8A; --c-primary-2:#2563EB; --c-bg:#F8FAFC; --c-card:#FFFFFF;
+  --c-border:#E2E8F0; --c-text:#0F172A; --c-muted:#64748B; --c-light:#94A3B8;
+  --c-green:#10B981; --c-red:#EF4444; --c-orange:#F59E0B; --c-blue:#3B82F6; --c-purple:#8B5CF6;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  background:var(--c-bg); color:var(--c-text); min-height:100vh; font-size:14px;
+}
+.wrap{max-width:1080px;margin:0 auto;padding:0 0 90px}
+
+/* 顶部 */
+.hd{
+  background:linear-gradient(135deg,#1E3A8A 0%,#2563EB 100%);
+  color:#fff; padding:16px 18px; display:flex; align-items:center; gap:12px;
+  position:sticky; top:0; z-index:50; box-shadow:0 2px 12px rgba(30,58,138,.18);
+}
+.hd-logo{font-size:26px;line-height:1}
+.hd-main{flex:1;min-width:0}
+.hd-title{font-size:15.5px;font-weight:800;letter-spacing:.3px}
+.hd-sub{font-size:11.5px;opacity:.82;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hd-btn{
+  background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.3); color:#fff;
+  font-size:11.5px; font-weight:700; padding:6px 11px; border-radius:16px; cursor:pointer; white-space:nowrap;
+}
+.hd-btn:active{background:rgba(255,255,255,.28)}
+
+/* 通用卡片 */
+.card{
+  background:var(--c-card); border:1px solid var(--c-border); border-radius:14px;
+  padding:16px; margin:14px; box-shadow:0 1px 3px rgba(15,23,42,.04);
+}
+.card-title{font-size:14.5px;font-weight:800;color:var(--c-text);margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.card-desc{font-size:12.5px;color:var(--c-muted);line-height:1.65;margin-bottom:12px}
+
+/* 按钮 */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:10px 18px;border-radius:10px;border:1px solid transparent;
+  font-size:13.5px;font-weight:700;cursor:pointer;transition:all .18s;font-family:inherit;
+}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--c-primary-2);color:#fff}
+.btn-primary:disabled{background:#CBD5E1;color:#fff;cursor:not-allowed;transform:none}
+.btn-ghost{background:#fff;color:#334155;border-color:#CBD5E1}
+.btn-green{background:var(--c-green);color:#fff}
+.btn-danger{background:var(--c-red);color:#fff}
+.btn-block{width:100%}
+.btn-sm{padding:6px 12px;font-size:12.5px;border-radius:8px}
+
+/* 输入 */
+textarea,input,select{
+  width:100%;padding:11px 13px;border:1px solid #CBD5E1;border-radius:10px;
+  font-size:14px;font-family:inherit;background:#fff;color:var(--c-text);outline:none;
+  transition:border-color .18s, box-shadow .18s;
+}
+textarea:focus,input:focus,select:focus{border-color:var(--c-primary-2);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+textarea{resize:vertical;line-height:1.6}
+label.fl{display:block;font-size:12.5px;font-weight:700;color:#334155;margin-bottom:6px}
+
+/* 提示条 */
+.tip{border-radius:10px;padding:11px 14px;font-size:12.5px;line-height:1.65;margin-bottom:12px}
+.tip-blue{background:#EFF6FF;border:1px solid #BFDBFE;color:#1E40AF}
+.tip-green{background:#ECFDF5;border:1px solid #A7F3D0;color:#065F46}
+.tip-amber{background:#FFFBEB;border:1px solid #FDE68A;color:#92400E}
+.tip-red{background:#FEF2F2;border:1px solid #FECACA;color:#991B1B}
+.tip b{font-weight:800}
+
+/* Tab */
+.tabs{
+  display:flex;gap:8px;padding:12px 14px 0;position:sticky;top:63px;background:var(--c-bg);z-index:40;
+}
+.tab{
+  flex:1;padding:10px 6px;border-radius:11px;border:1px solid var(--c-border);background:#fff;
+  font-size:13px;font-weight:700;color:#64748B;cursor:pointer;text-align:center;transition:all .18s;
+  font-family:inherit;
+}
+.tab.active{background:var(--c-primary-2);border-color:var(--c-primary-2);color:#fff;box-shadow:0 4px 12px rgba(37,99,235,.24)}
+
+/* 课表网格 */
+.tt-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:12px;border:1px solid var(--c-border);background:#fff}
+.tt{border-collapse:collapse;width:100%;min-width:720px;table-layout:fixed}
+.tt th{
+  background:#F8FAFC;font-size:11.5px;font-weight:800;color:#334155;padding:9px 4px;
+  border-bottom:1.5px solid var(--c-border);border-right:1px solid #F1F5F9;text-align:center;
+}
+.tt th.today{background:#EFF6FF;color:var(--c-primary-2)}
+.tt td{
+  border-bottom:1px solid #F1F5F9;border-right:1px solid #F1F5F9;padding:5px;
+  vertical-align:top;height:78px;background:#fff;
+}
+.tt td.period-cell{
+  background:#F8FAFC;text-align:center;vertical-align:middle;font-size:11.5px;
+  font-weight:700;color:#334155;width:82px;
+}
+.tt td.period-cell small{display:block;font-weight:600;color:var(--c-primary-2);font-size:10px;margin-top:2px}
+.course-chip{
+  border-radius:8px;padding:6px 7px;font-size:11px;line-height:1.35;cursor:pointer;
+  border:1px solid #BFDBFE;border-left:3px solid #2563EB;background:#EFF6FF;color:#1E3A8A;
+  margin-bottom:4px;transition:all .15s;
+}
+.course-chip:active{transform:scale(.98);filter:brightness(.96)}
+.course-chip .cn{font-weight:800;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.course-chip .cl{color:#2563EB;font-weight:600;margin-top:2px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.course-chip .ct{color:#64748B;font-size:10px;margin-top:1px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* 课表状态：已打卡（待上报） / 已上报 */
+.course-chip.saved{
+  border-color:#FDE68A;border-left-color:#F59E0B;background:#FFFBEB;color:#92400E;
+}
+.course-chip.saved .cl{color:#D97706}
+.course-chip.saved .ct{color:#B45309;font-weight:700}
+.course-chip.reported{
+  border-color:#A7F3D0;border-left-color:#10B981;background:#ECFDF5;color:#065F46;
+}
+.course-chip.reported .cl{color:#059669}
+.course-chip.reported .ct{color:#059669;font-weight:800}
+
+.empty-cell{color:#E2E8F0;font-size:11px;text-align:center;padding-top:22px}
+
+/* 周次条 */
+.week-bar{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.week-bar .wb-btn{
+  width:34px;height:34px;border-radius:10px;border:1px solid #CBD5E1;background:#fff;
+  font-size:16px;font-weight:800;color:#475569;cursor:pointer;flex:0 0 auto;font-family:inherit;
+}
+.week-bar .wb-btn:active{background:#F1F5F9}
+.week-bar .wb-label{flex:1;text-align:center;font-size:14px;font-weight:800;color:var(--c-text)}
+.week-bar .wb-label small{display:block;font-size:11px;font-weight:600;color:var(--c-muted);margin-top:2px}
+
+/* 考勤学生列表 */
+.stu-row{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:10px 4px;border-bottom:1px solid #F1F5F9;
+}
+.stu-row:last-child{border-bottom:none}
+.stu-info{flex:1 1 130px;min-width:0;display:flex;align-items:baseline;gap:7px}
+.stu-name{font-size:14px;font-weight:800;color:var(--c-text)}
+.stu-id{font-size:11.5px;color:var(--c-light);font-family:ui-monospace,monospace}
+.stu-btns{display:flex;gap:5px;flex-wrap:wrap}
+.sb{
+  padding:6px 11px;border-radius:9px;border:1.5px solid;font-size:12px;font-weight:700;
+  cursor:pointer;background:#fff;transition:all .14s;font-family:inherit;white-space:nowrap;
+}
+.sb[data-s="出勤"]{border-color:#A7F3D0;color:#059669;background:#ECFDF5}
+.sb[data-s="旷课"]{border-color:#FECACA;color:#DC2626;background:#FEF2F2}
+.sb[data-s="迟到"]{border-color:#FDE68A;color:#D97706;background:#FFFBEB}
+.sb[data-s="请假"]{border-color:#BFDBFE;color:#2563EB;background:#EFF6FF}
+.sb[data-s="早退"]{border-color:#DDD6FE;color:#7C3AED;background:#F5F3FF}
+.sb.on{color:#fff;box-shadow:0 3px 10px rgba(15,23,42,.16)}
+.sb.on[data-s="出勤"]{background:#10B981;border-color:#10B981}
+.sb.on[data-s="旷课"]{background:#EF4444;border-color:#EF4444}
+.sb.on[data-s="迟到"]{background:#F59E0B;border-color:#F59E0B}
+.sb.on[data-s="请假"]{background:#3B82F6;border-color:#3B82F6}
+.sb.on[data-s="早退"]{background:#8B5CF6;border-color:#8B5CF6}
+
+.att-head{
+  background:#F8FAFC;border:1px solid var(--c-border);border-radius:11px;
+  padding:11px 14px;margin-bottom:12px;font-size:12.5px;color:#334155;line-height:1.6;
+}
+.att-head b{color:var(--c-text)}
+
+/* 上报列表 */
+.rep-item{
+  border:1px solid var(--c-border);border-radius:11px;padding:11px 13px;
+  margin-bottom:9px;background:#fff;font-size:12.5px;
+}
+.rep-item.done{background:#F8FAFC;opacity:.72}
+.rep-item-hd{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap}
+.rep-date{font-weight:800;color:var(--c-text);font-size:13px}
+.rep-tag{font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px}
+.rep-tag.pending{background:#FFFBEB;color:#D97706;border:1px solid #FDE68A}
+.rep-tag.done{background:#ECFDF5;color:#059669;border:1px solid #A7F3D0}
+.rep-meta{color:var(--c-muted);line-height:1.6}
+.rep-meta b{color:#DC2626}
+
+/* 按日上报操作条 */
+.rep-actions{
+  display:flex;gap:6px;flex-wrap:wrap;align-items:center;
+  margin:0 0 10px;padding:9px 11px;background:#F8FAFC;
+  border:1px dashed #CBD5E1;border-radius:10px;
+}
+
+/* 弹窗 */
+.mask{
+  position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(3px);
+  display:none;align-items:center;justify-content:center;z-index:900;padding:16px;
+}
+.mask.on{display:flex}
+.dlg{
+  background:#fff;border-radius:16px;width:100%;max-width:560px;max-height:88vh;
+  display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.28);
+}
+.dlg-hd{padding:15px 18px;border-bottom:1px solid var(--c-border);display:flex;justify-content:space-between;align-items:center}
+.dlg-hd h3{font-size:15px;font-weight:800;color:var(--c-text)}
+.dlg-x{border:none;background:none;font-size:22px;color:#94A3B8;cursor:pointer;line-height:1;padding:0 4px}
+.dlg-bd{padding:18px;overflow-y:auto;flex:1}
+.dlg-ft{padding:13px 18px;border-top:1px solid var(--c-border);display:flex;gap:10px;justify-content:flex-end;background:#F8FAFC}
+
+/* 空状态 */
+.empty{text-align:center;padding:48px 20px;color:var(--c-light)}
+.empty .ic{font-size:40px;margin-bottom:10px}
+.empty .tt1{font-size:14px;font-weight:800;color:#64748B;margin-bottom:6px}
+.empty .tt2{font-size:12.5px;line-height:1.7}
+
+/* Toast */
+#toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+.toast-item{
+  padding:10px 18px;border-radius:10px;color:#fff;font-size:13px;font-weight:700;
+  box-shadow:0 8px 24px rgba(0,0,0,.22);opacity:0;transition:opacity .25s;max-width:82vw;
+}
+.toast-item.on{opacity:1}
+
+/* 徽章 */
+.badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.badge{font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:12px;background:#EFF6FF;color:#1E40AF;border:1px solid #BFDBFE}
+.badge.g{background:#ECFDF5;color:#059669;border-color:#A7F3D0}
+.badge.o{background:#FFFBEB;color:#D97706;border-color:#FDE68A}
+
+@media (max-width:480px){
+  .sb{padding:6px 9px;font-size:11.5px}
+  .stu-info{flex:1 1 100%}
+  .card{margin:10px;padding:14px}
+}
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<div class="wrap">
+  <header class="hd">
+    <div class="hd-logo">🎓</div>
+    <div class="hd-main">
+      <div class="hd-title">学习委员考勤端</div>
+      <div class="hd-sub" id="hd-sub">等待导入班级数据包…</div>
+    </div>
+    <button class="hd-btn" id="btn-reimport" style="display:none" onclick="openImportDialog()">重新导入</button>
+  </header>
+
+  <!-- ========== 导入面板 ========== -->
+  <div id="panel-import">
+    <div class="card">
+      <div class="card-title">📦 导入辅导员下发的班级数据包</div>
+      <div class="tip tip-blue">
+        每学期开学初，辅导员会分班下发一个<b>数据包</b>（.json 文件或一段 <code>HZXGPKG1:</code> 开头的文本码）。
+        导入后即可查看本班课表并打卡考勤。<br>
+        <b>隐私说明：</b>数据包仅包含本班同学的<b>学号、姓名、性别、宿舍</b>，不含手机号、身份证、家庭住址、家长联系方式、心理测评等任何敏感信息。
+      </div>
+
+      <label class="fl">方式一：粘贴数据包文本码</label>
+      <textarea id="inp-pkg" rows="5" placeholder="粘贴以 HZXGPKG1: 开头的文本码，或直接粘贴 JSON 内容…"></textarea>
+
+      <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+        <button class="btn btn-primary" style="flex:1;min-width:150px" onclick="importPkgFromText()">✅ 解析并导入</button>
+        <button class="btn btn-ghost" style="flex:1;min-width:150px" onclick="document.getElementById('file-pkg').click()">📂 选择 .json 文件</button>
+        <input type="file" id="file-pkg" accept=".json,.txt,.hzxg" style="display:none" onchange="importPkgFromFile(this)">
+      </div>
+
+      <div id="import-msg" style="margin-top:12px"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">❓ 使用流程</div>
+      <div class="card-step" style="font-size:12.5px;line-height:2;color:#475569">
+        <div><b style="color:#2563EB">①</b> 辅导员每学期初下发本班数据包 → 你在本页导入</div>
+        <div><b style="color:#2563EB">②</b> 每次课前/课后在「考勤」页点选课次，逐个标记出勤状态</div>
+        <div><b style="color:#2563EB">③</b> 每天在「上报」页按天生成回执，把 <code>HZXGATT1:</code> 文本码或 .json 文件通过 QQ 发给辅导员</div>
+        <div><b style="color:#2563EB">④</b> 辅导员导入后，考勤数据自动进入学院考勤台账</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 主面板 ========== -->
+  <div id="panel-main" style="display:none">
+    <div class="tabs">
+      <button class="tab active" data-tab="timetable" onclick="switchTab('timetable')">📅 课表</button>
+      <button class="tab" data-tab="attendance" onclick="switchTab('attendance')">✅ 考勤</button>
+      <button class="tab" data-tab="report" onclick="switchTab('report')">📤 上报</button>
+    </div>
+
+    <!-- 课表 -->
+    <section id="view-timetable">
+      <div class="card">
+        <div class="week-bar">
+          <button class="wb-btn" onclick="changeWeek(-1)">‹</button>
+          <div class="wb-label">
+            <span id="week-text">第 1 周</span>
+            <small id="week-date-text"></small>
+          </div>
+          <button class="wb-btn" onclick="changeWeek(1)">›</button>
+        </div>
+        <div class="tip tip-blue" style="margin-bottom:12px">
+          👆 直接点击课表中的课程卡片，即可进入该节课的考勤打卡。<br>
+          🟡 已打卡待上报　　🟢 已上报
+        </div>
+        <div class="tt-scroll">
+          <table class="tt" id="tt-table"></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 考勤 -->
+    <section id="view-attendance" style="display:none">
+      <div class="card">
+        <div class="card-title">📝 课堂考勤打卡</div>
+        <div id="att-session-box"></div>
+        <div id="att-student-box" style="margin-top:14px"></div>
+      </div>
+    </section>
+
+    <!-- 上报 -->
+    <section id="view-report" style="display:none">
+      <div class="card">
+        <div class="card-title">📤 生成并发送回执给辅导员</div>
+        <div class="tip tip-amber">
+          <b>按天上报：</b>每次只能上报<b>同一天</b>的课程考勤，不能把不同日期的课混在一起上报；也<b>不能上报今天之后</b>的课程。
+          当天所有课次打卡完成后，点击该日期下方的「生成该日回执」，把文本码或 .json 文件通过 QQ 发给辅导员即可。
+          重复发送不会造成重复统计（辅导员端按「班级+课程+日期+节次」自动覆盖）。
+        </div>
+        <div id="report-list"></div>
+        <div id="report-out" style="margin-top:14px"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🗂️ 本地记录管理</div>
+        <div class="tip tip-blue" id="local-stat">—</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-ghost" style="flex:1;min-width:140px" onclick="clearReported()">🧹 清除已上报记录</button>
+          <button class="btn btn-danger" style="flex:1;min-width:140px" onclick="clearAllLocal()">🗑️ 清空全部本地数据</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- 通用弹窗 -->
+<div class="mask" id="dlg-mask">
+  <div class="dlg">
+    <div class="dlg-hd">
+      <h3 id="dlg-title">提示</h3>
+      <button class="dlg-x" onclick="closeDlg()">×</button>
+    </div>
+    <div class="dlg-bd" id="dlg-body"></div>
+    <div class="dlg-ft" id="dlg-foot"></div>
+  </div>
+</div>
+
+<script>
+/* =========================================================================
+   学习委员考勤端 · 核心逻辑
+   存储键（与主站 hzxg_ 前缀区分，不会互相污染）：
+     hzxg_sc_package     班级数据包
+     hzxg_sc_attendance  本地考勤记录（数组）
+   上报规则：
+     1) 每次只能上报同一天（check_date 相同）的考勤；
+     2) 不能上报今天之后的课程；
+     3) 上报完成后课表对应课程卡片变色并标注「已上报」。
+   ========================================================================= */
+'use strict';
+
+const LS_PKG = 'hzxg_sc_package';
+const LS_ATT = 'hzxg_sc_attendance';
+
+const STATUS_LIST = ['出勤', '旷课', '迟到', '请假', '早退'];
+const STATUS_CODE = { '出勤': 1, '旷课': 2, '迟到': 3, '请假': 4, '早退': 5 };
+const CODE_STATUS = { 1: '出勤', 2: '旷课', 3: '迟到', 4: '请假', 5: '早退' };
+
+const DEFAULT_PERIODS = [
+  { period: 1, name: '第1-2节', start: '08:00', end: '09:40' },
+  { period: 3, name: '第3-4节', start: '10:00', end: '11:40' },
+  { period: 5, name: '第5-6节', start: '14:00', end: '15:40' },
+  { period: 7, name: '第7-8节', start: '16:00', end: '17:40' },
+  { period: 9, name: '第9-10节', start: '19:00', end: '20:40' }
+];
+
+let PKG = null;       // 班级数据包
+let ATT = [];         // 本地考勤记录
+let CUR_WEEK = 1;     // 当前查看周次
+let CUR_TAB = 'timetable';
+let CUR_SESSION = null; // 当前正在打卡的课次
+
+/* ---------------- 基础工具 ---------------- */
+function $(id) { return document.getElementById(id); }
+
+function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+}
+function nowISO() { return new Date().toISOString(); }
+function fmtDateTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return String(iso);
+  return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) +
+         ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+}
+
+function toast(msg, type) {
+  const box = $('toast');
+  const el = document.createElement('div');
+  const colors = { success: '#10B981', error: '#EF4444', warn: '#F59E0B', info: '#2563EB' };
+  el.className = 'toast-item';
+  el.style.background = colors[type] || colors.info;
+  el.textContent = msg;
+  box.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('on'));
+  setTimeout(() => {
+    el.classList.remove('on');
+    setTimeout(() => el.remove(), 300);
+  }, 2600);
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
+}
+
+/* UTF-8 安全的 Base64 编解码（分块处理，避免大文本栈溢出） */
+function utf8ToB64(str) {
+  const bytes = new TextEncoder().encode(str);
+  let bin = '';
+  const CHUNK = 0x8000;
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+  }
+  return btoa(bin);
+}
+function b64ToUtf8(b64) {
+  const clean = String(b64).replace(/\s+/g, '');
+  const bin = atob(clean);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+
+/* ---------------- 本地存储 ---------------- */
+function loadLocal() {
+  try { PKG = JSON.parse(localStorage.getItem(LS_PKG) || 'null'); } catch (e) { PKG = null; }
+  try { ATT = JSON.parse(localStorage.getItem(LS_ATT) || '[]'); } catch (e) { ATT = []; }
+  if (!Array.isArray(ATT)) ATT = [];
+  // 清洗：剔除结构异常的记录
+  ATT = ATT.filter(a => a && a.class_name && a.check_date);
+}
+function savePkg() {
+  try { localStorage.setItem(LS_PKG, JSON.stringify(PKG)); } catch (e) { toast('本地存储失败：' + e.message, 'error'); }
+}
+function saveAtt() {
+  try { localStorage.setItem(LS_ATT, JSON.stringify(ATT)); }
+  catch (e) { toast('本地存储空间不足，请先上报并清理记录', 'error'); }
+}
+
+/* ---------------- 会话键（必须与辅导员端完全一致） ---------------- */
+function sessionKey(a) {
+  return [
+    String(a.class_name || '').trim(),
+    String(a.course_info || '').trim(),
+    String(a.check_date || '').trim(),
+    (a.period === null || a.period === undefined) ? '' : String(a.period).trim()
+  ].join('||');
+}
+
+/* 根据课程信息 + 日期 + 节次，在本机考勤记录中查找对应会话 */
+function findSessionRecord(courseInfo, date, period) {
+  if (!PKG || !date) return null;
+  const key = sessionKey({
+    class_name: PKG.class_name,
+    course_info: courseInfo,
+    check_date: date,
+    period: period
+  });
+  return ATT.find(a => sessionKey(a) === key) || null;
+}
+
+/* ---------------- 数据包导入 ---------------- */
+function parsePackageText(text) {
+  let raw = String(text || '').trim();
+  if (!raw) throw new Error('内容为空，请粘贴数据包文本码');
+  if (raw.startsWith('HZXGPKG1:')) {
+    raw = b64ToUtf8(raw.slice('HZXGPKG1:'.length));
+  } else if (!raw.startsWith('{')) {
+    raw = b64ToUtf8(raw);
+  }
+  let obj;
+  try { obj = JSON.parse(raw); }
+  catch (e) { throw new Error('数据包格式错误，无法解析为 JSON'); }
+
+  if (!obj || obj._type !== 'HZXG_CLASS_PACKAGE') {
+    throw new Error('这不是有效的班级数据包（缺少 HZXG_CLASS_PACKAGE 标识）');
+  }
+  if (!obj.class_name) throw new Error('数据包缺少班级名称');
+  if (!Array.isArray(obj.students) || obj.students.length === 0) {
+    throw new Error('数据包中没有学生名单，请联系辅导员重新生成');
+  }
+  return obj;
+}
+
+function importPkgFromText() {
+  const txt = $('inp-pkg').value;
+  try {
+    const obj = parsePackageText(txt);
+    applyPackage(obj);
+  } catch (e) {
+    $('import-msg').innerHTML = '<div class="tip tip-red">❌ ' + escapeHtml(e.message) + '</div>';
+    toast(e.message, 'error');
+  }
+}
+
+function importPkgFromFile(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    try {
+      const obj = parsePackageText(e.target.result);
+      applyPackage(obj);
+    } catch (err) {
+      $('import-msg').innerHTML = '<div class="tip tip-red">❌ ' + escapeHtml(err.message) + '</div>';
+      toast(err.message, 'error');
+    } finally {
+      input.value = '';
+    }
+  };
+  reader.onerror = function () { toast('文件读取失败', 'error'); input.value = ''; };
+  reader.readAsText(file, 'utf-8');
+}
+
+function applyPackage(obj) {
+  // 若已有本地考勤且属于其它班级，给出提醒（不强制阻止，但让学委知情）
+  const otherClass = ATT.find(a => a.class_name !== obj.class_name);
+  if (otherClass) {
+    const ok = confirm(
+      '本地存有【' + otherClass.class_name + '】的未上报考勤记录。\n' +
+      '导入【' + obj.class_name + '】的数据包后，这些记录会保留在本机，仍可导出。\n\n' +
+      '建议：先把旧班级的记录上报给辅导员，再导入新班级数据包。\n\n是否继续导入？'
+    );
+    if (!ok) return;
+  }
+
+  PKG = obj;
+  savePkg();
+
+  // 兼容：补齐 period_times
+  if (!Array.isArray(PKG.period_times) || PKG.period_times.length === 0) {
+    PKG.period_times = DEFAULT_PERIODS.slice();
+  }
+  if (!Array.isArray(PKG.timetable)) PKG.timetable = [];
+  if (!PKG.total_weeks) PKG.total_weeks = 20;
+
+  CUR_WEEK = computeCurrentWeek();
+  CUR_TAB = 'timetable';
+  CUR_SESSION = null;
+
+  enterMain();
+  toast('✅ 数据包导入成功：' + PKG.class_name, 'success');
+}
+
+/* ---------------- 进入主界面 ---------------- */
+function enterMain() {
+  $('panel-import').style.display = 'none';
+  $('panel-main').style.display = 'block';
+  $('btn-reimport').style.display = 'inline-block';
+
+  $('hd-sub').textContent = PKG.class_name +
+    (PKG.semester ? ' · ' + PKG.semester : '') +
+    ' · ' + PKG.students.length + ' 名学生 · ' + PKG.timetable.length + ' 门课';
+
+  switchTab(CUR_TAB);
+}
+
+function openImportDialog() {
+  const ok = confirm('重新导入数据包将覆盖当前本机保存的班级信息。\n\n本机已打卡但未上报的考勤记录不会被删除，仍可在「上报」页导出。\n\n是否继续？');
+  if (!ok) return;
+  $('panel-main').style.display = 'none';
+  $('panel-import').style.display = 'block';
+  $('btn-reimport').style.display = 'none';
+  $('inp-pkg').value = '';
+  $('import-msg').innerHTML = '';
+}
+
+/* ---------------- 周次 / 日期计算 ---------------- */
+function computeCurrentWeek() {
+  if (!PKG || !PKG.term_start_date) return 1;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(PKG.term_start_date).trim());
+  if (!m) return 1;
+  const start = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const days = Math.round((today - start) / 86400000);
+  if (days < 0) return 1;
+  let w = Math.floor(days / 7) + 1;
+  const total = parseInt(PKG.total_weeks) || 20;
+  if (w > total) w = total;
+  if (w < 1) w = 1;
+  return w;
+}
+
+function weekDateRange(week) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(PKG.term_start_date || '').trim());
+  if (!m) return '';
+  const start = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  const mon = new Date(start.getTime() + (week - 1) * 7 * 86400000);
+  const sun = new Date(mon.getTime() + 6 * 86400000);
+  const f = d => (d.getMonth() + 1) + '/' + d.getDate();
+  return f(mon) + ' - ' + f(sun);
+}
+
+/* 第 week 周、星期 dayOfWeek（1=周一）对应的具体日期；无法确定时返回 null */
+function dateOfWeekDay(week, dayOfWeek) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(PKG.term_start_date || '').trim());
+  if (!m) return null;
+  const start = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  const d = new Date(start.getTime() + ((week - 1) * 7 + (dayOfWeek - 1)) * 86400000);
+  return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+}
+
+function changeWeek(delta) {
+  const total = parseInt(PKG.total_weeks) || 20;
+  let w = CUR_WEEK + delta;
+  if (w < 1) w = 1;
+  if (w > total) w = total;
+  CUR_WEEK = w;
+  renderTimetable();
+}
+
+/* ---------------- 课表渲染 ---------------- */
+function weekMatch(item, week) {
+  // 周次区间，如 "1-16"
+  let startW = 1, endW = 99;
+  const ws = String(item.weeks || '').trim();
+  const mm = ws.match(/(\d+)\s*-\s*(\d+)/);
+  if (mm) {
+    startW = parseInt(mm[1], 10) || 1;
+    endW = parseInt(mm[2], 10) || startW;
+  } else if (/^\d+$/.test(ws)) {
+    startW = endW = parseInt(ws, 10);
+  }
+  if (week < startW || week > endW) return false;
+
+  const wt = String(item.week_type || 'ALL').toUpperCase();
+  if (wt === 'ODD' && week % 2 === 0) return false;
+  if (wt === 'EVEN' && week % 2 !== 0) return false;
+  return true;
+}
+
+function renderTimetable() {
+  const table = $('tt-table');
+  if (!table) return;
+
+  $('week-text').textContent = '第 ' + CUR_WEEK + ' 周';
+  $('week-date-text').textContent = weekDateRange(CUR_WEEK);
+
+  const periods = PKG.period_times && PKG.period_times.length ? PKG.period_times : DEFAULT_PERIODS;
+  const dayNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+
+  // 今天（仅在查看当前周时高亮）
+  const now = new Date();
+  let todayIdx = now.getDay();
+  if (todayIdx === 0) todayIdx = 7;
+  const realWeek = computeCurrentWeek();
+  const isThisWeek = (CUR_WEEK === realWeek);
+
+  // 表头
+  let html = '<thead><tr><th style="width:82px">节次</th>';
+  for (let d = 1; d <= 7; d++) {
+    const isToday = isThisWeek && d === todayIdx;
+    html += '<th class="' + (isToday ? 'today' : '') + '">' + dayNames[d - 1] +
+            (isToday ? ' · 今天' : '') + '</th>';
+  }
+  html += '</tr></thead><tbody>';
+
+  // 行：节次
+  periods.forEach(p => {
+    const periodVal = parseInt(p.period, 10) || 1;
+    html += '<tr><td class="period-cell">' + escapeHtml(p.name || ('第' + periodVal + '节')) +
+            '<small>' + escapeHtml(p.start || '') + '-' + escapeHtml(p.end || '') + '</small></td>';
+
+    for (let d = 1; d <= 7; d++) {
+      const items = PKG.timetable.filter(t =>
+        parseInt(t.day_of_week, 10) === d &&
+        parseInt(t.start_period, 10) === periodVal &&
+        weekMatch(t, CUR_WEEK)
+      );
+      if (items.length === 0) {
+        html += '<td><div class="empty-cell">—</div></td>';
+      } else {
+        const cellDate = dateOfWeekDay(CUR_WEEK, d);
+        html += '<td>';
+        items.forEach((it, i) => {
+          const info = buildCourseInfo(it.course_name, it.location);
+          const rec = cellDate ? findSessionRecord(info, cellDate, periodVal) : null;
+
+          let chipCls = 'course-chip';
+          let subHtml = '<span class="ct">👨‍🏫 ' + escapeHtml(it.teacher || '教师未填') + '</span>';
+
+          if (rec && rec._reported) {
+            chipCls += ' reported';
+            subHtml = '<span class="ct">✅ 已上报</span>';
+          } else if (rec) {
+            chipCls += ' saved';
+            subHtml = '<span class="ct">📝 已打卡 · 待上报</span>';
+          }
+
+          html += '<div class="' + chipCls + '" onclick="startAttendanceFromCourse(' + d + ',' + periodVal + ',' + i + ')">' +
+                    '<span class="cn">' + escapeHtml(it.course_name || '未命名课程') + '</span>' +
+                    '<span class="cl">📍 ' + escapeHtml(it.location || '未填教室') + '</span>' +
+                    subHtml +
+                  '</div>';
+        });
+        html += '</td>';
+      }
+    }
+    html += '</tr>';
+  });
+  html += '</tbody>';
+  table.innerHTML = html;
+}
+
+function buildCourseInfo(courseName, location) {
+  let s = '《' + String(courseName || '').trim() + '》';
+  const loc = String(location || '').trim();
+  if (loc) s += ' · ' + loc;
+  return s;
+}
+
+/* ---------------- Tab 切换 ---------------- */
+function switchTab(tab) {
+  CUR_TAB = tab;
+  document.querySelectorAll('.tab').forEach(t => {
+    t.classList.toggle('active', t.getAttribute('data-tab') === tab);
+  });
+  $('view-timetable').style.display = (tab === 'timetable') ? 'block' : 'none';
+  $('view-attendance').style.display = (tab === 'attendance') ? 'block' : 'none';
+  $('view-report').style.display = (tab === 'report') ? 'block' : 'none';
+
+  if (tab === 'timetable') renderTimetable();
+  if (tab === 'attendance') renderAttendancePanel();
+  if (tab === 'report') renderReportPanel();
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ---------------- 考勤 ---------------- */
+function startAttendanceFromCourse(day, period, idx) {
+  // 重新查一次，确保取到同一门课
+  const items = PKG.timetable.filter(t =>
+    parseInt(t.day_of_week, 10) === day &&
+    parseInt(t.start_period, 10) === period &&
+    weekMatch(t, CUR_WEEK)
+  );
+  const it = items[idx];
+  if (!it) return;
+
+  // 根据当前查看的周次和星期，推算具体日期
+  const date = dateOfWeekDay(CUR_WEEK, day) || todayStr();
+
+  // 不能对今天之后的课程打卡（否则会产生未来记录，也无法上报）
+  if (date > todayStr()) {
+    toast('该课程安排在 ' + date + '（今天之后），不能提前考勤', 'warn');
+    return;
+  }
+
+  CUR_SESSION = {
+    class_name: PKG.class_name,
+    check_date: date,
+    period: period,
+    course_info: buildCourseInfo(it.course_name, it.location),
+    course_name: it.course_name || '',
+    location: it.location || ''
+  };
+  switchTab('attendance');
+}
+
+function renderAttendancePanel() {
+  const sessionBox = $('att-session-box');
+  const stuBox = $('att-student-box');
+
+  if (!CUR_SESSION) {
+    sessionBox.innerHTML =
+      '<div class="tip tip-blue">' +
+      '请先到「📅 课表」页点击要考勤的课程卡片；' +
+      '也可以在下方手动指定日期与课次（不能选择今天之后的日期）。' +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
+        '<div><label class="fl">上课日期</label><input type="date" id="manual-date" value="' + todayStr() + '" max="' + todayStr() + '"></div>' +
+        '<div><label class="fl">节次</label><select id="manual-period">' +
+          (PKG.period_times || DEFAULT_PERIODS).map(p =>
+            '<option value="' + p.period + '">' + escapeHtml(p.name || ('第' + p.period + '节')) + '（' + escapeHtml(p.start) + '-' + escapeHtml(p.end) + '）</option>'
+          ).join('') +
+        '</select></div>' +
+      '</div>' +
+      '<div style="margin-top:10px"><label class="fl">课程信息</label>' +
+        '<input type="text" id="manual-course" placeholder="如：《高等数学》· 教三楼401"></div>' +
+      '<button class="btn btn-primary btn-block" style="margin-top:12px" onclick="startManualAttendance()">开始考勤</button>';
+    stuBox.innerHTML = '';
+    return;
+  }
+
+  const existing = ATT.find(a => sessionKey(a) === sessionKey(CUR_SESSION));
+  const recMap = {};
+  if (existing && Array.isArray(existing.records)) {
+    existing.records.forEach(r => { recMap[String(r.student_id)] = r; });
+  }
+
+  let stateNote = '';
+  if (existing) {
+    stateNote = existing._reported
+      ? '　·　<span style="color:#059669;font-weight:700">已上报（修改后需重新上报）</span>'
+      : '　·　<span style="color:#D97706;font-weight:700">已打卡，可修改后重新保存</span>';
+  }
+
+  sessionBox.innerHTML =
+    '<div class="att-head">' +
+      '<div><b>' + escapeHtml(CUR_SESSION.course_info) + '</b></div>' +
+      '<div style="margin-top:4px;color:#64748B">' +
+        '日期：' + escapeHtml(CUR_SESSION.check_date) +
+        '　·　节次：' + escapeHtml(getPeriodLabel(CUR_SESSION.period)) +
+        '　·　计 ' + (existing && existing.period_count ? existing.period_count : 2) + ' 节' +
+        stateNote +
+      '</div>' +
+    '</div>' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+      '<button class="btn btn-ghost btn-sm" onclick="setAllStatus(\'出勤\')">全体出勤</button>' +
+      '<button class="btn btn-ghost btn-sm" onclick="setAllStatus(\'请假\')">全体请假</button>' +
+      '<button class="btn btn-ghost btn-sm" onclick="cancelSession()">放弃本节</button>' +
+    '</div>';
+
+  // 学生列表
+  const students = PKG.students.slice().sort((a, b) => String(a.id).localeCompare(String(b.id)));
+  let html = '';
+  students.forEach(s => {
+    const cur = recMap[String(s.id)];
+    const curStatus = cur ? cur.status : '出勤';
+    const curRemark = cur ? (cur.remarks || '') : '';
+    html += '<div class="stu-row" data-sid="' + escapeHtml(s.id) + '">' +
+      '<div class="stu-info">' +
+        '<span class="stu-name">' + escapeHtml(s.name) + '</span>' +
+        '<span class="stu-id">' + escapeHtml(String(s.id).slice(-6)) + '</span>' +
+      '</div>' +
+      '<div class="stu-btns">' +
+        STATUS_LIST.map(st =>
+          '<button class="sb' + (st === curStatus ? ' on' : '') + '" data-s="' + st + '" ' +
+          'onclick="markStudent(\'' + jsEscape(s.id) + '\',\'' + st + '\',this)">' + st + '</button>'
+        ).join('') +
+      '</div>' +
+      '<input type="text" class="remark-inp" data-sid="' + escapeHtml(s.id) + '" placeholder="异常备注（选填）" ' +
+        'value="' + escapeHtml(curRemark) + '" style="flex:1 1 100%;padding:6px 10px;font-size:12px;border-radius:8px;margin-top:2px">' +
+    '</div>';
+  });
+  stuBox.innerHTML = html +
+    '<button class="btn btn-primary btn-block" style="margin-top:16px" onclick="saveSession()">💾 保存本节考勤</button>';
+}
+
+function jsEscape(s) { return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
+
+function getPeriodLabel(period) {
+  const list = PKG.period_times || DEFAULT_PERIODS;
+  const p = list.find(x => String(x.period) === String(period));
+  if (p) return (p.name || ('第' + p.period + '节')) + '（' + p.start + '-' + p.end + '）';
+  return '第' + period + '节';
+}
+
+function startManualAttendance() {
+  const date = $('manual-date').value;
+  const period = parseInt($('manual-period').value, 10);
+  const course = $('manual-course').value.trim();
+  if (!date) { toast('请选择上课日期', 'warn'); return; }
+  if (date > todayStr()) { toast('不能选择今天之后的日期', 'warn'); return; }
+  if (!course) { toast('请填写课程信息', 'warn'); return; }
+  CUR_SESSION = {
+    class_name: PKG.class_name,
+    check_date: date,
+    period: period,
+    course_info: course,
+    course_name: course.replace(/^《|》.*$/g, ''),
+    location: ''
+  };
+  renderAttendancePanel();
+}
+
+function cancelSession() {
+  CUR_SESSION = null;
+  renderAttendancePanel();
+}
+
+// 点选状态：同一行内互斥高亮
+function markStudent(sid, status, btnEl) {
+  const row = btnEl.closest('.stu-row');
+  if (!row) return;
+  row.querySelectorAll('.sb').forEach(b => b.classList.remove('on'));
+  btnEl.classList.add('on');
+}
+
+function setAllStatus(status) {
+  document.querySelectorAll('.stu-row').forEach(row => {
+    row.querySelectorAll('.sb').forEach(b => {
+      b.classList.toggle('on', b.getAttribute('data-s') === status);
+    });
+  });
+}
+
+function saveSession() {
+  if (!CUR_SESSION) return;
+
+  const records = [];
+  let absent = 0, late = 0, leave = 0;
+
+  document.querySelectorAll('.stu-row').forEach(row => {
+    const sid = row.getAttribute('data-sid');
+    const stu = PKG.students.find(s => String(s.id) === String(sid));
+    if (!stu) return;
+
+    const onBtn = row.querySelector('.sb.on');
+    const status = onBtn ? onBtn.getAttribute('data-s') : '出勤';
+    const remarkInp = row.querySelector('.remark-inp');
+    const remarks = remarkInp ? remarkInp.value.trim() : '';
+
+    if (status === '旷课') absent++;
+    else if (status === '迟到' || status === '早退') late++;
+    else if (status === '请假') leave++;
+
+    records.push({
+      student_id: String(stu.id),
+      student_name: stu.name,
+      dorm_room: [stu.dorm_building || '', stu.dorm_room || ''].join(' ').trim(),
+      status: status,
+      remarks: remarks,
+      period_count: 2
+    });
+  });
+
+  const rec = {
+    class_name: PKG.class_name,
+    course_info: CUR_SESSION.course_info,
+    course_name: CUR_SESSION.course_name,
+    check_date: CUR_SESSION.check_date,
+    period: CUR_SESSION.period,
+    period_count: 2,
+    records: records,
+    absent_count: absent,
+    late_count: late,
+    leave_count: leave,
+    saved_at: nowISO(),
+    _reported: false,
+    _reported_at: ''
+  };
+
+  // 按会话键覆盖
+  const key = sessionKey(rec);
+  const idx = ATT.findIndex(a => sessionKey(a) === key);
+  const wasReported = idx >= 0 && ATT[idx]._reported;
+  if (idx >= 0) ATT[idx] = rec;
+  else ATT.push(rec);
+
+  saveAtt();
+  if (wasReported) {
+    toast('⚠️ 该节原记录已上报，本次修改后需重新上报', 'warn');
+  } else {
+    toast('✅ 本节考勤已保存（旷课 ' + absent + ' 人 / 请假 ' + leave + ' 人）', 'success');
+  }
+  renderAttendancePanel();
+}
+
+/* ---------------- 上报 ---------------- */
+function renderReportPanel() {
+  const listBox = $('report-list');
+  const statBox = $('local-stat');
+  const today = todayStr();
+
+  if (!ATT.length) {
+    listBox.innerHTML =
+      '<div class="empty"><div class="ic">📭</div>' +
+      '<div class="tt1">还没有任何考勤记录</div>' +
+      '<div class="tt2">请先到「✅ 考勤」页完成打卡</div></div>';
+    statBox.textContent = '本地共 0 条考勤记录。';
+    return;
+  }
+
+  // 按日期倒序；同一天按节次正序
+  const sorted = ATT.slice().sort((a, b) => {
+    const d = String(b.check_date).localeCompare(String(a.check_date));
+    if (d !== 0) return d;
+    return (parseInt(a.period, 10) || 0) - (parseInt(b.period, 10) || 0);
+  });
+
+  const pendingCount = sorted.filter(a => !a._reported && a.check_date <= today).length;
+  const doneCount = sorted.filter(a => a._reported).length;
+  const futureCount = sorted.filter(a => a.check_date > today).length;
+
+  // 按日期分组
+  const byDate = {};
+  sorted.forEach(a => {
+    if (!byDate[a.check_date]) byDate[a.check_date] = [];
+    byDate[a.check_date].push(a);
+  });
+
+  let html = '';
+  Object.keys(byDate).forEach(date => {
+    const list = byDate[date];
+    const isFuture = date > today;
+    const pendingInDate = list.filter(a => !a._reported);
+
+    html += '<div style="margin-bottom:6px;font-size:12px;font-weight:800;color:#64748B;margin-top:12px">📅 ' +
+              escapeHtml(date) +
+              (date === today ? '（今天）' : '') +
+              (isFuture ? ' · <span style="color:#DC2626">未来日期，不可上报</span>' : '') +
+            '</div>';
+
+    list.forEach(a => {
+      const rep = a._reported;
+      html += '<div class="rep-item' + (rep ? ' done' : '') + '">' +
+        '<div class="rep-item-hd">' +
+          '<span class="rep-date">' + escapeHtml(getPeriodLabel(a.period)) + '</span>' +
+          '<span class="rep-tag ' + (rep ? 'done' : 'pending') + '">' +
+            (rep ? '已上报' : '待上报') + '</span>' +
+        '</div>' +
+        '<div class="rep-meta">' + escapeHtml(a.course_info || '') + '</div>' +
+        '<div class="rep-meta" style="margin-top:3px">' +
+          '应到 <b style="color:#0F172A">' + a.records.length + '</b> 人　' +
+          '旷课 <b>' + (a.absent_count || 0) + '</b> 人　' +
+          '迟到/早退 <b style="color:#D97706">' + (a.late_count || 0) + '</b> 人　' +
+          '请假 <b style="color:#2563EB">' + (a.leave_count || 0) + '</b> 人' +
+        '</div>' +
+        '<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">' +
+          '<button class="btn btn-ghost btn-sm" onclick="toggleReported(' + JSON.stringify(sessionKey(a)).replace(/"/g, '&quot;') + ')">' +
+            (rep ? '↩️ 标记为待上报' : '✅ 标记为已上报') +
+          '</button>' +
+          '<button class="btn btn-danger btn-sm" onclick="deleteRecord(' + JSON.stringify(sessionKey(a)).replace(/"/g, '&quot;') + ')">🗑️ 删除</button>' +
+        '</div>' +
+      '</div>';
+    });
+
+    // 按天上报：每个日期单独一组操作按钮
+    if (!isFuture && pendingInDate.length > 0) {
+      html += '<div class="rep-actions">' +
+        '<button class="btn btn-primary btn-sm" onclick="generateReceipt(\'' + date + '\')">📋 生成该日回执并复制</button>' +
+        '<button class="btn btn-ghost btn-sm" onclick="downloadReceipt(\'' + date + '\')">💾 下载该日回执</button>' +
+        '<span style="font-size:11.5px;color:#64748B">该日待上报 ' + pendingInDate.length + ' 节</span>' +
+      '</div>';
+    }
+  });
+
+  listBox.innerHTML = html;
+  statBox.innerHTML = '本地共 <b>' + ATT.length + '</b> 条考勤记录：待上报 <b style="color:#D97706">' + pendingCount +
+    '</b> 条，已上报 <b style="color:#059669">' + doneCount + '</b> 条。' +
+    (futureCount ? ' <span style="color:#DC2626">另有 ' + futureCount + ' 条未来日期记录，不能上报。</span>' : '');
+}
+
+function toggleReported(key) {
+  const rec = ATT.find(a => sessionKey(a) === key);
+  if (!rec) return;
+  rec._reported = !rec._reported;
+  rec._reported_at = rec._reported ? nowISO() : '';
+  saveAtt();
+  renderReportPanel();
+  renderTimetable(); // 同步课表颜色
+}
+
+function deleteRecord(key) {
+  if (!confirm('确定删除这条考勤记录吗？删除后无法恢复。')) return;
+  ATT = ATT.filter(a => sessionKey(a) !== key);
+  saveAtt();
+  renderReportPanel();
+  renderTimetable();
+  toast('记录已删除', 'info');
+}
+
+/* 构建某一天的回执对象：只包含该日期、且未上报的记录 */
+function buildReceiptObject(date) {
+  if (!date) return null;
+  if (String(date) > todayStr()) return null; // 不能上报今天之后的课程
+
+  const pending = ATT.filter(a => a.check_date === date && !a._reported);
+  if (pending.length === 0) return null;
+  pending.sort((a, b) => (parseInt(a.period, 10) || 0) - (parseInt(b.period, 10) || 0));
+
+  const sessions = pending.map(a => ({
+    check_date: a.check_date,
+    period: a.period,
+    course_info: a.course_info,
+    period_count: a.period_count || 2,
+    absent_count: a.absent_count || 0,
+    late_count: a.late_count || 0,
+    leave_count: a.leave_count || 0,
+    // 紧凑格式：[学号, 状态码, 备注]
+    records: (a.records || []).map(r => [
+      String(r.student_id),
+      STATUS_CODE[r.status] || 1,
+      String(r.remarks || '')
+    ])
+  }));
+
+  return {
+    _type: 'HZXG_ATTENDANCE_RECEIPT',
+    _v: 1,
+    class_name: PKG.class_name,
+    semester: PKG.semester || '',
+    check_date: date,          // 回执所属日期（按天上报）
+    sessions: sessions,
+    submitted_at: nowISO()
+  };
+}
+
+function generateReceipt(date) {
+  date = date || todayStr();
+
+  const obj = buildReceiptObject(date);
+  if (!obj) {
+    $('report-out').innerHTML = '<div class="tip tip-amber">' +
+      escapeHtml(date) + ' 没有可上报的考勤记录' +
+      (date > todayStr() ? '（该日期在今天之后，不能上报）' : '') + '。</div>';
+    toast('该日期没有可上报的考勤记录', 'warn');
+    return;
+  }
+
+  const json = JSON.stringify(obj);
+  const code = 'HZXGATT1:' + utf8ToB64(json);
+
+  copyToClipboard(code, function (ok) {
+    $('report-out').innerHTML =
+      '<div class="tip tip-green">' +
+        '✅ 已生成 <b>' + escapeHtml(date) + '</b> 的回执，包含 <b>' + obj.sessions.length + '</b> 节课的考勤数据。' +
+        (ok ? '文本码已复制到剪贴板，直接粘贴到 QQ 发给辅导员即可。' : '请手动全选下方文本码复制。') +
+      '</div>' +
+      '<textarea id="out-code" rows="6" readonly style="font-family:ui-monospace,monospace;font-size:11.5px;line-height:1.5">' +
+        escapeHtml(code) + '</textarea>' +
+      '<div class="tip tip-blue" style="margin-top:10px;font-size:11.5px">' +
+        '💡 文本码较长时（多节课），建议改用「下载该日回执」通过 QQ 发文件，更稳定。' +
+      '</div>' +
+      '<button class="btn btn-green btn-block" style="margin-top:10px" onclick="markPendingReported(\'' + date + '\')">' +
+        '✅ 我已发送给辅导员，标记该日为已上报</button>';
+
+    if (ok) toast('回执已生成并复制', 'success');
+    else toast('回执已生成，请手动复制', 'warn');
+  });
+}
+
+/* 只把指定日期的未上报记录标记为已上报 */
+function markPendingReported(date) {
+  date = date || todayStr();
+  let n = 0;
+  ATT.forEach(a => {
+    if (a.check_date === date && !a._reported) {
+      a._reported = true;
+      a._reported_at = nowISO();
+      n++;
+    }
+  });
+  saveAtt();
+  renderReportPanel();
+  renderTimetable(); // 课表同步变色
+  $('report-out').innerHTML = '<div class="tip tip-green">✅ 已把 <b>' + escapeHtml(date) +
+    '</b> 的 <b>' + n + '</b> 节考勤标记为已上报，课表已同步更新。</div>';
+  toast('已标记 ' + n + ' 节为已上报', 'success');
+}
+
+function downloadReceipt(date) {
+  date = date || todayStr();
+
+  const obj = buildReceiptObject(date);
+  if (!obj) {
+    $('report-out').innerHTML = '<div class="tip tip-amber">' + escapeHtml(date) + ' 没有可上报的考勤记录。</div>';
+    toast('该日期没有可上报的考勤记录', 'warn');
+    return;
+  }
+
+  const json = JSON.stringify(obj, null, 2);
+  const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const stamp = date.replace(/-/g, '');
+  a.href = url;
+  a.download = (PKG.class_name || '班级') + '_考勤回执_' + stamp + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+
+  $('report-out').innerHTML = '<div class="tip tip-green">✅ ' + escapeHtml(date) +
+    ' 的回执文件已下载，请通过 QQ 发送给辅导员。</div>';
+  toast('回执文件已下载', 'success');
+}
+
+function copyToClipboard(text, cb) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(
+      () => cb && cb(true),
+      () => cb && cb(false)
+    );
+    return;
+  }
+  // 降级
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.top = '-2000px';
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    cb && cb(ok);
+  } catch (e) {
+    cb && cb(false);
+  }
+}
+
+function clearReported() {
+  const n = ATT.filter(a => a._reported).length;
+  if (n === 0) { toast('没有已上报的记录', 'info'); return; }
+  if (!confirm('确定清除 ' + n + ' 条「已上报」的本地记录吗？\n\n清除后本机不再保留这些数据（辅导员端已有存档）。')) return;
+  ATT = ATT.filter(a => !a._reported);
+  saveAtt();
+  renderReportPanel();
+  renderTimetable();
+  toast('已清除 ' + n + ' 条已上报记录', 'success');
+}
+
+function clearAllLocal() {
+  if (!confirm('⚠️ 确定清空本机全部考勤记录吗？\n\n未上报的数据将永久丢失，请务必先上报给辅导员！')) return;
+  const n = ATT.length;
+  ATT = [];
+  saveAtt();
+  renderReportPanel();
+  renderTimetable();
+  toast('已清空 ' + n + ' 条本地记录', 'info');
+}
+
+/* ---------------- 弹窗 ---------------- */
+function openDlg(title, bodyHtml, footHtml) {
+  $('dlg-title').textContent = title || '提示';
+  $('dlg-body').innerHTML = bodyHtml || '';
+  $('dlg-foot').innerHTML = footHtml || '<button class="btn btn-ghost" onclick="closeDlg()">关闭</button>';
+  $('dlg-mask').classList.add('on');
+}
+function closeDlg() { $('dlg-mask').classList.remove('on'); }
+$('dlg-mask').addEventListener('click', function (e) {
+  if (e.target === this) closeDlg();
+});
+
+/* ---------------- 初始化 ---------------- */
+(function init() {
+  loadLocal();
+
+  if (PKG && Array.isArray(PKG.students) && PKG.students.length) {
+    if (!Array.isArray(PKG.period_times) || !PKG.period_times.length) PKG.period_times = DEFAULT_PERIODS.slice();
+    if (!Array.isArray(PKG.timetable)) PKG.timetable = [];
+    if (!PKG.total_weeks) PKG.total_weeks = 20;
+    CUR_WEEK = computeCurrentWeek();
+    enterMain();
+    // 提示：距上次上报多久
+    const pending = ATT.filter(a => !a._reported).length;
+    if (pending > 0) {
+      setTimeout(() => toast('本机有 ' + pending + ' 条待上报考勤，记得发给辅导员', 'warn'), 700);
+    }
+  } else {
+    $('panel-import').style.display = 'block';
+    $('panel-main').style.display = 'none';
+  }
+
+  // 键盘：Esc 关闭弹窗
+  window.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeDlg();
+  });
+})();
+</script>
+</body>
+</html>
